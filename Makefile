@@ -1,5 +1,5 @@
 
 build:
-	uglifyjs -nc ./js/background.js > ./js/background.min.js
+	uglifyjs -nc ./background.js > ./background.min.js
 
 .PHONY: build
