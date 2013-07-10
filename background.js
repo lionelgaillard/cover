@@ -35,20 +35,26 @@
   Background.prototype = {
 
     onLoad: function () {
+      this.$element.trigger('load.background');
       this.resize();
       if (typeof this.options.onLoad == 'function') {
         this.options.onLoad(this.$element);
       }
+      this.$element.trigger('loaded.background');
     },
 
     getWrapper: function () {
       if (!this.$wrapper) {
-        this.$wrapper = this.$element.parent();
-        while (
-          this.$wrapper.not('body') &&
-          -1 == $.inArray(this.$wrapper.css('display'), ['block', 'inline-block'])
-        ) {
-          this.$wrapper = this.$wrapper.parent();
+        if (typeof this.options.wrapperSelector == 'string') {
+          this.$wrapper = this.$element.closest(this.options.wrapperSelector);
+        } else {
+          this.$wrapper = this.$element.parent();
+          while (
+            this.$wrapper.not('body') &&
+            -1 == $.inArray(this.$wrapper.css('display'), ['block', 'inline-block'])
+          ) {
+            this.$wrapper = this.$wrapper.parent();
+          }
         }
       }
       return this.$wrapper;
@@ -84,6 +90,7 @@
     },
 
     resize: function () {
+      this.$element.trigger('resize.background');
       if (this.getWrapperRatio() < this.getRatio()) {
         this.$element.css({
           'width' : 'auto',
@@ -135,8 +142,8 @@
             });
         }
       }
+      this.$element.trigger('resized.background');
     }
-
   };
 
 
@@ -148,21 +155,18 @@
   $.fn.background = function (option) {
     return this.each(function () {
       var $this   = $(this),
-          data    = $this.data('background'),
           options = $.extend({}, $.fn.background.defaults, $this.data(), typeof option == 'object' && option);
-      if (!data) {
-        $this.data('background', (data = new Background(this, options)));
-      }
-      if (typeof option == 'string') {
-        return data[option]();
+      if (!$this.data('background')) {
+        $this.data('background', new Background(this, options));
       }
     });
   };
 
   $.fn.background.defaults = {
-      posX  : 'center', // 'left', 'right' or anything else meaning center
-      posY  : 'middle', // 'top', 'bottom' or anything else meaning middle
-      onLoad: function ($el) {
+      posX           : 'center',  // 'left', 'right' or anything else meaning center
+      posY           : 'middle',  // 'top', 'bottom' or anything else meaning middle
+      wrapperSelector: undefined, // Used with 'closest'
+      onLoad         : function ($el) {
         $el.fadeIn();
       }
   };
