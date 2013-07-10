@@ -7,6 +7,7 @@
   * =========================== */
 
   var Background = function (element, options) {
+    this.options  = options;
     this.$element = $(element)
       .hide()
       .css({
@@ -23,7 +24,6 @@
       this.$wrapper.css('position', 'relative');
     }
     this.$wrapper.css('overflow', 'hidden');
-    this.options  = options;
     $(window).resize($.proxy(this.resize, this));
     if (this.$element.get(0).complete) {
       this.onLoad();
@@ -143,7 +143,7 @@
  /* BACKGROUND PLUGIN DEFINITION
   * ============================ */
 
-  var old = $.fn.background
+  var old = $.fn.background;
 
   $.fn.background = function (option) {
     return this.each(function () {
@@ -167,7 +167,7 @@
       }
   };
 
-  $.fn.background.Constructor = Background;
+  $.fn.background.constructor = Background;
 
 
  /* BACKGROUND NO CONFLICT
@@ -182,11 +182,11 @@
  /* BACKGROUND DATA-API
   * =================== */
 
-  $(window).on('load', function () {
+  $(function () {
     $('[data-background="background"]').each(function () {
       var $this = $(this);
       $this.background($this.data());
-    })
-  })
+    });
+  });
 
 })(window.jQuery, window);
