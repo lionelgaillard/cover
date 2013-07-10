@@ -57,7 +57,7 @@
     getWidth: function () {
       if (!this.width) {
         if (!(this.width = this.$element.attr('width'))) {
-          this.width = this.get(0).width || 1;
+          this.width = this.$element.get(0).width || 1;
         }
       }
       return this.width;
@@ -66,7 +66,7 @@
     getHeight: function () {
       if (!this.height) {
         if (!(this.height = this.$element.attr('height'))) {
-          this.height = this.get(0).height || 1;
+          this.height = this.$element.get(0).height || 1;
         }
       }
       return this.height;
@@ -167,7 +167,7 @@
       }
   };
 
-  $.fn.background.constructor = Background;
+  $.fn.background.Constructor = Background;
 
 
  /* BACKGROUND NO CONFLICT
