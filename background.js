@@ -154,7 +154,7 @@
         $this.data('background', (data = new Background(this, options)));
       }
       if (typeof option == 'string') {
-        data[option]();
+        return data[option]();
       }
     });
   };
