@@ -31,7 +31,7 @@ Default options
 ---------------
 
 ```javascript
-$.fn.background.defaults = {
+Cover.DEFAULTS = {
   // 'left', 'right' or 'center'
   posX  : 'center',
   // 'top', 'bottom' or 'middle'
