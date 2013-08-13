@@ -33,11 +33,13 @@ Default options
 ```javascript
 Cover.DEFAULTS = {
   // 'left', 'right' or 'center'
-  posX  : 'center',
+  posX:    'center',
   // 'top', 'bottom' or 'middle'
-  posY  : 'middle',
+  posY:    'middle',
+  // Used with 'closest'
+  wrapper: undefined,
   // onLoad callback
-  onLoad: function ($el) {
+  load:    function ($el) {
     $el.fadeIn();
   }
 };

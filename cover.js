@@ -32,10 +32,14 @@
   };
 
   Cover.DEFAULTS = {
-    posX:            'center',  // 'left', 'right' or 'center'
-    posY:            'middle',  // 'top', 'bottom' or 'middle'
-    wrapperSelector: undefined, // Used with 'closest'
-    load:            function ($el) {
+    // 'left', 'right' or 'center'
+    posX:    'center',
+    // 'top', 'bottom' or 'middle'
+    posY:    'middle',
+    // Used with 'closest'
+    wrapper: undefined,
+    // onLoad callback
+    load:    function ($el) {
       $el.fadeIn();
     }
   };
@@ -53,12 +57,13 @@
 
     getWrapper: function () {
       if (!this.$wrapper) {
-        if (typeof this.options.wrapperSelector == 'string') {
-          this.$wrapper = this.$element.closest(this.options.wrapperSelector);
+        if (typeof this.options.wrapper == 'string') {
+          this.$wrapper = this.$element.closest(this.options.wrapper);
         } else {
           this.$wrapper = this.$element.parent();
           while (
             this.$wrapper.not('body') &&
+            -1 == $.inArray(this.$wrapper.css('position'), ['relative', 'absolute']) &&
             -1 == $.inArray(this.$wrapper.css('display'), ['block', 'inline-block'])
           ) {
             this.$wrapper = this.$wrapper.parent();
