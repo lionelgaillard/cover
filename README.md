@@ -31,16 +31,26 @@ Default options
 ---------------
 
 ```javascript
-Cover.DEFAULTS = {
-  // 'left', 'right' or 'center'
-  posX:    'center',
-  // 'top', 'bottom' or 'middle'
-  posY:    'middle',
-  // Used with 'closest'
-  wrapper: undefined,
-  // onLoad callback
-  load:    function ($el) {
-    $el.fadeIn();
-  }
-};
+  Cover.DEFAULTS = {
+
+    // 'left', 'right' or 'center'
+    posX:    'center',
+
+    // 'top', 'bottom' or 'middle'
+    posY:    'middle',
+
+    // Used with 'closest'
+    wrapper: undefined,
+
+    // onInit
+    init:    function () {
+      $(this).fadeTo(0, 0);
+    },
+
+    // onLoad
+    load:    function () {
+      $(this).fadeTo(400, 1);
+    }
+
+  };
 ```

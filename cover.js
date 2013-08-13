@@ -8,9 +8,7 @@
 
   function Cover (element, options) {
     this.options  = $.extend({}, Cover.DEFAULTS, options);
-    this.$element = $(element)
-      .hide()
-      .css({
+    this.$element = $(element).css({
         'position':   'absolute',
         'width':      'auto',
         'min-width':  'none',
@@ -23,6 +21,11 @@
       this.getWrapper().css('position', 'relative');
     }
     this.getWrapper().css('overflow', 'hidden');
+
+    if (typeof this.options.init == 'function') {
+      this.options.init.call(this.$element);
+    }
+
     $(window).resize($.proxy(this.resize, this));
     if (this.$element.get(0).complete) {
       this.load();
@@ -32,16 +35,26 @@
   };
 
   Cover.DEFAULTS = {
+
     // 'left', 'right' or 'center'
     posX:    'center',
+
     // 'top', 'bottom' or 'middle'
     posY:    'middle',
+
     // Used with 'closest'
     wrapper: undefined,
-    // onLoad callback
-    load:    function ($el) {
-      $el.fadeIn();
+
+    // onInit
+    init:    function () {
+      $(this).fadeTo(0, 0);
+    },
+
+    // onLoad
+    load:    function () {
+      $(this).fadeTo(400, 1);
     }
+
   };
 
   $.extend(Cover.prototype, {
@@ -50,7 +63,7 @@
       this.$element.trigger('load.cover');
       this.resize();
       if (typeof this.options.load == 'function') {
-        this.options.load(this.$element);
+        this.options.load.call(this.$element);
       }
       this.$element.trigger('loaded.cover');
     },
