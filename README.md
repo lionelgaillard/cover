@@ -15,7 +15,7 @@ If direct parent is an inline element (like a `a`), it will be ignored trough th
 
 ```javascript
 $(function ($) {
-    $('.background-image').background();
+    $('.background-image').cover();
 });
 ```
 
@@ -23,7 +23,7 @@ $(function ($) {
 
 ```html
 <body>
-  <img src="img/background.jpg" data-background="background" data-posX="left" data-posY="top" alt="My background image" />
+  <img src="img/background.jpg" data-size="cover" data-posX="left" data-posY="top" alt="My background image" />
 </body>
 ```
 
@@ -32,8 +32,11 @@ Default options
 
 ```javascript
 $.fn.background.defaults = {
-  posX  : 'center', // 'left', 'right' or anything else meaning center
-  posY  : 'middle', // 'top', 'bottom' or anything else meaning middle
+  // 'left', 'right' or 'center'
+  posX  : 'center',
+  // 'top', 'bottom' or 'middle'
+  posY  : 'middle',
+  // onLoad callback
   onLoad: function ($el) {
     $el.fadeIn();
   }
