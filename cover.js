@@ -1,46 +1,54 @@
-;(function ($, window, undefined) {
+;(function ($, undefined) {
 
   "use strict";
 
 
- /* BACKGROUND CLASS DEFINITION
-  * =========================== */
+  // COVER CLASS DEFINITION
+  // ======================
 
-  var Background = function (element, options) {
-    this.options  = options;
+  function Cover (element, options) {
+    this.options  = $.extend({}, Cover.DEFAULTS, options);
     this.$element = $(element)
       .hide()
       .css({
-        'position': 'absolute',
-        'width': 'auto',
-        'min-width': 'none',
-        'max-width': 'none',
-        'height': 'auto',
+        'position':   'absolute',
+        'width':      'auto',
+        'min-width':  'none',
+        'max-width':  'none',
+        'height':     'auto',
         'min-height': 'none',
         'max-height': 'none'
       });
-    this.$wrapper = this.getWrapper();
-    if (-1 == $.inArray(this.$wrapper.css('position'), ['absolute', 'relative', 'fixed'])) {
-      this.$wrapper.css('position', 'relative');
+    if (-1 == $.inArray(this.getWrapper().css('position'), ['absolute', 'relative', 'fixed'])) {
+      this.getWrapper().css('position', 'relative');
     }
-    this.$wrapper.css('overflow', 'hidden');
+    this.getWrapper().css('overflow', 'hidden');
     $(window).resize($.proxy(this.resize, this));
     if (this.$element.get(0).complete) {
-      this.onLoad();
+      this.load();
     } else {
-      this.$element.load($.proxy(this.onLoad, this));
+      this.$element.load($.proxy(this.load, this));
     }
   };
 
-  Background.prototype = {
+  Cover.DEFAULTS = {
+    posX:            'center',  // 'left', 'right' or 'center'
+    posY:            'middle',  // 'top', 'bottom' or 'middle'
+    wrapperSelector: undefined, // Used with 'closest'
+    load:            function ($el) {
+      $el.fadeIn();
+    }
+  };
 
-    onLoad: function () {
-      this.$element.trigger('load.background');
+  $.extend(Cover.prototype, {
+
+    load: function () {
+      this.$element.trigger('load.cover');
       this.resize();
-      if (typeof this.options.onLoad == 'function') {
-        this.options.onLoad(this.$element);
+      if (typeof this.options.load == 'function') {
+        this.options.load(this.$element);
       }
-      this.$element.trigger('loaded.background');
+      this.$element.trigger('loaded.cover');
     },
 
     getWrapper: function () {
@@ -62,18 +70,14 @@
 
     getWidth: function () {
       if (!this.width) {
-        if (!(this.width = this.$element.attr('width'))) {
-          this.width = this.$element.get(0).width || 1;
-        }
+        this.width = this.$element.attr('width') || this.$element.get(0).width || 1;
       }
       return this.width;
     },
 
     getHeight: function () {
       if (!this.height) {
-        if (!(this.height = this.$element.attr('height'))) {
-          this.height = this.$element.get(0).height || 1;
-        }
+        this.height = this.$element.attr('height') || this.$element.get(0).height || 1;
       }
       return this.height;
     },
@@ -90,7 +94,7 @@
     },
 
     resize: function () {
-      this.$element.trigger('resize.background');
+      this.$element.trigger('resize.cover');
       if (this.getWrapperRatio() < this.getRatio()) {
         this.$element.css({
           'width' : 'auto',
@@ -142,55 +146,49 @@
             });
         }
       }
-      this.$element.trigger('resized.background');
+      this.$element.trigger('resized.cover');
     }
-  };
+
+  });
 
 
- /* BACKGROUND PLUGIN DEFINITION
-  * ============================ */
+  // COVER PLUGIN DEFINITION
+  // =======================
 
-  var old = $.fn.background;
+  var old = $.fn.cover;
 
-  $.fn.background = function (option) {
+  $.fn.cover = function (option) {
     return this.each(function () {
       var $this   = $(this),
-          options = $.extend({}, $.fn.background.defaults, $this.data(), typeof option == 'object' && option);
-      if (!$this.data('background')) {
-        $this.data('background', new Background(this, options));
+          data    = $this.data('wxr.cover'),
+          options = typeof option == 'object' && option;
+
+      if (!data) {
+        $this.data('wxr.cover', (data = new Cover(this, options)));
       }
     });
   };
 
-  $.fn.background.defaults = {
-      posX           : 'center',  // 'left', 'right' or anything else meaning center
-      posY           : 'middle',  // 'top', 'bottom' or anything else meaning middle
-      wrapperSelector: undefined, // Used with 'closest'
-      onLoad         : function ($el) {
-        $el.fadeIn();
-      }
-  };
-
-  $.fn.background.Constructor = Background;
+  $.fn.cover.Constructor = Cover;
 
 
- /* BACKGROUND NO CONFLICT
-  * ====================== */
+  // COVER NO CONFLICT
+  // =================
 
-  $.fn.background.noConflict = function () {
-    $.fn.background = old;
+  $.fn.cover.noConflict = function () {
+    $.fn.cover = old;
     return this;
   };
 
 
- /* BACKGROUND DATA-API
-  * =================== */
+  // COVER DATA-API
+  // ==============
 
-  $(function () {
-    $('[data-background="background"]').each(function () {
+  $(window).on('load', function () {
+    $('img[data-size="cover"]').each(function () {
       var $this = $(this);
-      $this.background($this.data());
+      $this.cover($this.data());
     });
   });
 
-})(window.jQuery, window);
+})(window.jQuery);

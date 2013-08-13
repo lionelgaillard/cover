@@ -1,5 +1,5 @@
-Background
-==========
+Cover
+=====
 
 Use `img` as a background image.
 
@@ -7,7 +7,7 @@ Use `img` as a background image.
 Quick start
 -----------
 
-Background's wrapper can be `body` or anything else element with `block` or `inline-block` `display`.
+Cover's wrapper can be `body` or any other element with `block` or `inline-block` `display`.
 If direct parent is an inline element (like a `a`), it will be ignored trough the closest valid ancestor.
 
 
