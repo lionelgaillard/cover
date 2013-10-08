@@ -7,7 +7,6 @@ module.exports = function (grunt) {
     uglify: {
       dist: {
         options: {
-          banner: '<%= banner %>',
           compress: true
         },
         files: {
