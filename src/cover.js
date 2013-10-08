@@ -9,18 +9,21 @@
   function Cover (element, options) {
     this.options  = $.extend({}, Cover.DEFAULTS, options);
     this.$element = $(element).css({
-        'position':   'absolute',
-        'width':      'auto',
-        'min-width':  'none',
-        'max-width':  'none',
-        'height':     'auto',
-        'min-height': 'none',
-        'max-height': 'none'
-      });
-    if (-1 == $.inArray(this.getWrapper().css('position'), ['absolute', 'relative', 'fixed'])) {
-      this.getWrapper().css('position', 'relative');
+      'position':   'absolute',
+      'width':      'auto',
+      'min-width':  '0',
+      'max-width':  'none',
+      'height':     'auto',
+      'min-height': '0',
+      'max-height': 'none'
+    });
+
+    if (!this.getWrapper().is('body')) {
+      if (-1 == $.inArray(this.getWrapper().css('position'), ['absolute', 'relative', 'fixed'])) {
+        this.getWrapper().css('position', 'relative');
+      }
+      this.getWrapper().css('overflow', 'hidden');
     }
-    this.getWrapper().css('overflow', 'hidden');
 
     if (typeof this.options.init == 'function') {
       this.options.init.call(this.$element);
@@ -37,27 +40,36 @@
   Cover.DEFAULTS = {
 
     // 'left', 'right' or 'center'
-    posX:    'center',
+    posX: 'center',
 
     // 'top', 'bottom' or 'middle'
-    posY:    'middle',
+    posY: 'middle',
 
-    // Used with 'closest'
+    // Shift X (px)
+    shiftX: 0,
+
+    // Shift Y (px)
+    shiftY: 0,
+
+    // Bleed size (px)
+    bleedSize: 0,
+
+    // Wrapper selector used with 'closest'
     wrapper: undefined,
 
     // onInit
-    init:    function () {
+    init: function () {
       $(this).fadeTo(0, 0);
     },
 
     // onLoad
-    load:    function () {
+    load: function () {
       $(this).fadeTo(400, 1);
     }
 
   };
 
-  $.extend(Cover.prototype, {
+  Cover.prototype = {
 
     load: function () {
       this.$element.trigger('load.cover');
@@ -107,11 +119,21 @@
       return this.ratio;
     },
 
+    getWrapperWidth: function () {
+      return this.getWrapper().width();
+    },
+
+    getWrapperHeight: function () {
+      return this.getWrapper().height();
+    },
+
     getWrapperRatio: function () {
-      return this.getWrapper().width() / (this.getWrapper().height() || 1);
+      return this.getWrapperWidth() / (this.getWrapperHeight() || 1);
     },
 
     resize: function () {
+      var options = this.options;
+
       this.$element.trigger('resize.cover');
       if (this.getWrapperRatio() < this.getRatio()) {
         this.$element.css({
@@ -119,7 +141,7 @@
           'height': '100%',
           'top': 0
         });
-        switch (this.options.posX) {
+        switch (options.posX) {
           case 'left':
             this.$element.css({
               left: 0,
@@ -144,7 +166,7 @@
           'height': 'auto',
           'left': 0
         });
-        switch (this.options.posY) {
+        switch (options.posY) {
           case 'top':
             this.$element.css({
               top: 0,
@@ -167,7 +189,7 @@
       this.$element.trigger('resized.cover');
     }
 
-  });
+  };
 
 
   // COVER PLUGIN DEFINITION

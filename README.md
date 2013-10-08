@@ -39,7 +39,7 @@ Default options
     // 'top', 'bottom' or 'middle'
     posY:    'middle',
 
-    // Used with 'closest'
+    // Wrapper selector used with 'closest'
     wrapper: undefined,
 
     // onInit

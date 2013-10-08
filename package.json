@@ -1,0 +1,29 @@
+{
+  "name": "cover",
+  "version": "1.1.0",
+  "description": "Use img as a background",
+  "main": "src/cover.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Ascarius/cover.git"
+  },
+  "keywords": [
+    "jquery",
+    "image",
+    "img",
+    "background",
+    "cover"
+  ],
+  "author": {
+    "name": "Lionel Gaillard",
+    "url": "http://wxrstudios.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ascarius/cover/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-uglify": "~0.2.4"
+  }
+}
