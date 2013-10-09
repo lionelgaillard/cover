@@ -23,7 +23,7 @@ $(function ($) {
 
 ```html
 <body>
-  <img src="img/background.jpg" data-size="cover" data-posX="left" data-posY="top" alt="My background image" />
+  <img src="img/background.jpg" data-size="cover" alt="My background image" />
 </body>
 ```
 
@@ -31,26 +31,34 @@ Default options
 ---------------
 
 ```javascript
+
   Cover.DEFAULTS = {
 
     // 'left', 'right' or 'center'
-    posX:    'center',
+    x: 'center',
 
     // 'top', 'bottom' or 'middle'
-    posY:    'middle',
+    y: 'middle',
+
+    // 'scroll' or 'fixed'
+    attachment: 'scroll',
 
     // Wrapper selector used with 'closest'
     wrapper: undefined,
 
+    // Use CSS if browser is compatible
+    css: true,
+
     // onInit
-    init:    function () {
+    init: function () {
       $(this).fadeTo(0, 0);
     },
 
     // onLoad
-    load:    function () {
+    load: function () {
       $(this).fadeTo(400, 1);
     }
 
   };
+
 ```
