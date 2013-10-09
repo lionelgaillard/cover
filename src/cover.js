@@ -1,14 +1,50 @@
-;(function ($, undefined) {
+;(function ($, window, undefined) {
 
   "use strict";
+
+  var $window = $(window);
 
 
   // COVER CLASS DEFINITION
   // ======================
 
   function Cover (element, options) {
-    this.options  = $.extend({}, Cover.DEFAULTS, options);
-    this.$element = $(element).css({
+    var options, $element, $wrapper;
+
+    this.options  = options  = $.extend({}, Cover.DEFAULTS, options);
+    this.$element = $element = $(element);
+    $wrapper      = this.getWrapper();
+
+    // Use css 'background-size' if supported
+    if (
+      options.css
+      && ($('html').hasClass('bgsizecover')
+        || (!window.Modernizr
+          && $wrapper.css('background-size', 'cover')
+          && $wrapper.css('background-size') == 'cover'
+        )
+      )
+    ) {
+      $wrapper.css({
+        'background-image':      'url(' + $element.attr('src') + ')',
+        'background-position':   options.x + ' ' + options.y,
+        'background-attachment': options.attachment
+      });
+      $element.hide();
+      return;
+    }
+
+    // Init wrapper
+    if (options.attachment == 'scroll' && !$wrapper.is('body')) {
+      if (-1 == $.inArray($wrapper.css('position'), ['absolute', 'relative', 'fixed'])) {
+        $wrapper.css('position', 'relative');
+      }
+      $wrapper.css('overflow', 'hidden');
+    }
+
+    // Init element
+    $element.css({
+      // 'position':   options.attachment == 'fixed' ? 'fixed' : 'absolute',
       'position':   'absolute',
       'width':      'auto',
       'min-width':  '0',
@@ -18,44 +54,37 @@
       'max-height': 'none'
     });
 
-    if (!this.getWrapper().is('body')) {
-      if (-1 == $.inArray(this.getWrapper().css('position'), ['absolute', 'relative', 'fixed'])) {
-        this.getWrapper().css('position', 'relative');
-      }
-      this.getWrapper().css('overflow', 'hidden');
+    if (typeof options.init == 'function') {
+      options.init.call($element);
     }
 
-    if (typeof this.options.init == 'function') {
-      this.options.init.call(this.$element);
-    }
+    // Bindings
+    $window.resize($.proxy(this.resize, this));
 
-    $(window).resize($.proxy(this.resize, this));
-    if (this.$element.get(0).complete) {
+    if ($element.get(0).complete) {
       this.load();
     } else {
-      this.$element.load($.proxy(this.load, this));
+      $element.load($.proxy(this.load, this));
     }
+
   };
 
   Cover.DEFAULTS = {
 
     // 'left', 'right' or 'center'
-    posX: 'center',
+    x: 'center',
 
     // 'top', 'bottom' or 'middle'
-    posY: 'middle',
+    y: 'middle',
 
-    // Shift X (px)
-    shiftX: 0,
-
-    // Shift Y (px)
-    shiftY: 0,
-
-    // Bleed size (px)
-    bleedSize: 0,
+    // 'scroll' or 'fixed'
+    attachment: 'scroll',
 
     // Wrapper selector used with 'closest'
     wrapper: undefined,
+
+    // Use CSS if browser is compatible
+    css: true,
 
     // onInit
     init: function () {
@@ -81,50 +110,73 @@
     },
 
     getWrapper: function () {
-      if (!this.$wrapper) {
-        if (typeof this.options.wrapper == 'string') {
-          this.$wrapper = this.$element.closest(this.options.wrapper);
+      var options  = this.options,
+          $wrapper = this.$wrapper,
+          $element = this.$element;
+
+      if ($wrapper === undefined) {
+        if (typeof options.wrapper == 'string') {
+          $wrapper = $element.closest(options.wrapper);
         } else {
-          this.$wrapper = this.$element.parent();
+          $wrapper = $element.parent();
           while (
-            this.$wrapper.not('body') &&
-            -1 == $.inArray(this.$wrapper.css('position'), ['relative', 'absolute']) &&
-            -1 == $.inArray(this.$wrapper.css('display'), ['block', 'inline-block'])
+            !$wrapper.is('body') &&
+            -1 == $.inArray($wrapper.css('position'), ['relative', 'absolute']) &&
+            -1 == $.inArray($wrapper.css('display'), ['block', 'inline-block'])
           ) {
-            this.$wrapper = this.$wrapper.parent();
+            $wrapper = $wrapper.parent();
           }
         }
+        this.$wrapper = $wrapper;
       }
-      return this.$wrapper;
+      return $wrapper;
     },
 
-    getWidth: function () {
+    getOriginalWidth: function () {
       if (!this.width) {
         this.width = this.$element.attr('width') || this.$element.get(0).width || 1;
       }
       return this.width;
     },
 
-    getHeight: function () {
+    getOriginalHeight: function () {
       if (!this.height) {
         this.height = this.$element.attr('height') || this.$element.get(0).height || 1;
       }
       return this.height;
     },
 
-    getRatio: function () {
+    getOriginalRatio: function () {
       if (!this.ratio) {
-        this.ratio = this.getWidth() / this.getHeight();
+        this.ratio = this.getOriginalWidth() / this.getOriginalHeight();
       }
       return this.ratio;
     },
 
     getWrapperWidth: function () {
-      return this.getWrapper().width();
+      var options = this.options,
+          $wrapper;
+      if (this.wrapperWidth === undefined) {
+        $wrapper = options.attachment == 'fixed' ? $window : this.getWrapper();
+        this.wrapperWidth = $wrapper.width();
+        $window.resize(function () {
+          this.wrapperWidth = $wrapper.width();
+        });
+      }
+      return this.wrapperWidth;
     },
 
     getWrapperHeight: function () {
-      return this.getWrapper().height();
+      var options = this.options,
+          $wrapper;
+      if (this.wrapperHeight === undefined) {
+        $wrapper = options.attachment == 'fixed' ? $window : this.getWrapper();
+        this.wrapperHeight = $wrapper.height();
+        $window.resize(function () {
+          this.wrapperHeight = $wrapper.height();
+        });
+      }
+      return this.wrapperHeight;
     },
 
     getWrapperRatio: function () {
@@ -132,61 +184,64 @@
     },
 
     resize: function () {
-      var options = this.options;
+      var options  = this.options,
+          $element = this.$element;
 
-      this.$element.trigger('resize.cover');
-      if (this.getWrapperRatio() < this.getRatio()) {
-        this.$element.css({
+      $element.trigger('resize.cover');
+
+      if (this.getWrapperRatio() < this.getOriginalRatio()) {
+        $element.css({
           'width' : 'auto',
           'height': '100%',
           'top': 0
         });
-        switch (options.posX) {
+        switch (options.x) {
           case 'left':
-            this.$element.css({
+            $element.css({
               left: 0,
               right: 'none'
             });
             break;
           case 'right':
-            this.$element.css({
+            $element.css({
               left: 'none',
               right: 0
             });
             break;
           default:
-            this.$element.css({
-              left: -((this.$element.width() - this.$wrapper.width()) / 2),
+            $element.css({
+              left: -(($element.width() - this.getWrapperWidth()) / 2),
               right: 'none'
             });
         }
       } else {
-        this.$element.css({
+        $element.css({
           'width' : '100%',
           'height': 'auto',
           'left': 0
         });
-        switch (options.posY) {
+        switch (options.y) {
           case 'top':
-            this.$element.css({
+            $element.css({
               top: 0,
               bottom: 'none'
             });
             break;
           case 'bottom':
-            this.$element.css({
+            $element.css({
               top: 'none',
               bottom: 0
             });
             break;
           default:
-            this.$element.css({
-              top: -((this.$element.height() - this.$wrapper.height()) / 2),
+            $element.css({
+              top: -(($element.height() - this.getWrapperHeight()) / 2),
               bottom: 'none'
             });
         }
       }
-      this.$element.trigger('resized.cover');
+
+      $element.trigger('resized.cover');
     }
 
   };
@@ -231,4 +286,4 @@
     });
   });
 
-})(window.jQuery);
+})(window.jQuery, window);
