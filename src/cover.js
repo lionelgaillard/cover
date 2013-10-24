@@ -21,7 +21,7 @@
       && ($('html').hasClass('bgsizecover')
         || (!window.Modernizr
           && $wrapper.css('background-size', 'cover')
-          && $wrapper.css('background-size') == 'cover'
+          && $wrapper.css('background-size') === 'cover'
         )
       )
     ) {
@@ -35,8 +35,8 @@
     }
 
     // Init wrapper
-    if (options.attachment == 'scroll' && !$wrapper.is('body')) {
-      if (-1 == $.inArray($wrapper.css('position'), ['absolute', 'relative', 'fixed'])) {
+    if (options.attachment === 'scroll' && !$wrapper.is('body')) {
+      if (-1 === $.inArray($wrapper.css('position'), ['absolute', 'relative', 'fixed'])) {
         $wrapper.css('position', 'relative');
       }
       $wrapper.css('overflow', 'hidden');
@@ -44,7 +44,7 @@
 
     // Init element
     $element.css({
-      // 'position':   options.attachment == 'fixed' ? 'fixed' : 'absolute',
+      // 'position':   options.attachment === 'fixed' ? 'fixed' : 'absolute',
       'position':   'absolute',
       'width':      'auto',
       'min-width':  '0',
@@ -54,7 +54,7 @@
       'max-height': 'none'
     });
 
-    if (typeof options.init == 'function') {
+    if (typeof options.init === 'function') {
       options.init.call($element);
     }
 
@@ -103,7 +103,7 @@
     load: function () {
       this.$element.trigger('load.cover');
       this.resize();
-      if (typeof this.options.load == 'function') {
+      if (typeof this.options.load === 'function') {
         this.options.load.call(this.$element);
       }
       this.$element.trigger('loaded.cover');
@@ -115,14 +115,14 @@
           $element = this.$element;
 
       if ($wrapper === undefined) {
-        if (typeof options.wrapper == 'string') {
+        if (typeof options.wrapper === 'string') {
           $wrapper = $element.closest(options.wrapper);
         } else {
           $wrapper = $element.parent();
           while (
             !$wrapper.is('body') &&
-            -1 == $.inArray($wrapper.css('position'), ['relative', 'absolute']) &&
-            -1 == $.inArray($wrapper.css('display'), ['block', 'inline-block'])
+            -1 === $.inArray($wrapper.css('position'), ['relative', 'absolute']) &&
+            -1 === $.inArray($wrapper.css('display'), ['block', 'inline-block'])
           ) {
             $wrapper = $wrapper.parent();
           }
@@ -154,13 +154,14 @@
     },
 
     getWrapperWidth: function () {
-      var options = this.options,
+      var self = this,
+          options = this.options,
           $wrapper;
       if (this.wrapperWidth === undefined) {
-        $wrapper = options.attachment == 'fixed' ? $window : this.getWrapper();
+        $wrapper = options.attachment === 'fixed' ? $window : this.getWrapper();
         this.wrapperWidth = $wrapper.width();
         $window.resize(function () {
-          this.wrapperWidth = $wrapper.width();
+          self.wrapperWidth = $wrapper.width();
         });
       }
       return this.wrapperWidth;
@@ -170,10 +171,10 @@
       var options = this.options,
           $wrapper;
       if (this.wrapperHeight === undefined) {
-        $wrapper = options.attachment == 'fixed' ? $window : this.getWrapper();
+        $wrapper = options.attachment === 'fixed' ? $window : this.getWrapper();
         this.wrapperHeight = $wrapper.height();
         $window.resize(function () {
-          this.wrapperHeight = $wrapper.height();
+          self.wrapperHeight = $wrapper.height();
         });
       }
       return this.wrapperHeight;
@@ -252,14 +253,18 @@
 
   var old = $.fn.cover;
 
-  $.fn.cover = function (option) {
+  $.fn.cover = function (o) {
     return this.each(function () {
       var $this   = $(this),
           data    = $this.data('wxr.cover'),
-          options = typeof option == 'object' && option;
+          options = typeof o === 'object' ? o : {};
 
       if (!data) {
-        $this.data('wxr.cover', (data = new Cover(this, options)));
+        $this.data('wxr.cover', (data = new Cover(this, $.extend({}, options, $this.data()))));
+      }
+
+      if (o === 'resize') {
+        data.resize();
       }
     });
   };
