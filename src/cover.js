@@ -109,7 +109,6 @@
   };
 
   Cover.prototype.destroy = function () {
-    console.log('Cover.destroy');
     $window.off('resize', this.onResize);
     $window.off('orientationchange', this.onResize);
     this.$element.off('remove', this.onRemove);
