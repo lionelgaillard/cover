@@ -9,7 +9,7 @@
     // Browser globals
     factory(jQuery);
   }
-}(function ($) {
+}(function ($, undefined) {
 
   "use strict";
 
@@ -71,14 +71,10 @@
     css: true,
 
     // onInit
-    onInit: function () {
-      $(this).fadeTo(0, 0);
-    },
+    onInit: undefined,
 
     // onLoad
-    onLoad: function () {
-      $(this).fadeTo(400, 1);
-    }
+    onLoad: undefined
 
   };
 
