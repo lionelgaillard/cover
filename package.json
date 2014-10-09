@@ -1,6 +1,6 @@
 {
   "name": "cover",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Use element as a `background-size: cover;`",
   "main": "dist/cover.min.js",
   "repository": {
