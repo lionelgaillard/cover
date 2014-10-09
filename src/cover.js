@@ -72,13 +72,11 @@
 
     // onInit
     onInit: function () {
-      console.log('onInit');
       $(this).fadeTo(0, 0);
     },
 
     // onLoad
     onLoad: function () {
-      console.log('onLoad');
       $(this).fadeTo(400, 1);
     }
 
