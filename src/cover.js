@@ -1,17 +1,42 @@
-;(function ($, window) {
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(['jquery'], factory);
+  } else if (typeof exports === 'object') {
+    // Node/CommonJS
+    module.exports = factory(require('jquery'));
+  } else {
+    // Browser globals
+    factory(jQuery);
+  }
+}(function ($) {
 
   "use strict";
 
-  var $window = $(window);
+  var PLUGIN_NAME = 'cover';
+  var NAMESPACE   = 'wxr.cover';
+
+  var $window     = $(window);
+  var old         = $.fn[PLUGIN_NAME];
 
 
-  // COVER CLASS DEFINITION
-  // ======================
-
+  /**
+   * Cover constructor
+   *
+   * @param {Element} element
+   * @param {Object} options
+   */
   function Cover (element, options) {
-    this.options  = $.extend({}, Cover.DEFAULTS, options);
     this.$element = $(element);
-    this.$wrapper = this.findWrapper();
+
+    if (this.$element.data(NAMESPACE)) {
+      return this.$element.data(NAMESPACE);
+    }
+
+    this.$element.data(NAMESPACE, this);
+
+    this.options  = $.extend({}, this.DEFAULTS, options || {}, this.$element.data());
+    this.$wrapper = this._findWrapper();
 
     this.width    = null;
     this.height   = null;
@@ -20,10 +45,15 @@
     this.onResize = null;
     this.onRemove = null;
 
-    this.init();
+    this._init();
   }
 
-  Cover.DEFAULTS = {
+  /**
+   * Defaults options
+   *
+   * @type {Object}
+   */
+  Cover.prototype.DEFAULTS = {
 
     // 'left', 'right' or 'center'
     x: 'center',
@@ -42,23 +72,31 @@
 
     // onInit
     onInit: function () {
+      console.log('onInit');
       $(this).fadeTo(0, 0);
     },
 
     // onLoad
     onLoad: function () {
+      console.log('onLoad');
       $(this).fadeTo(400, 1);
     }
 
   };
 
-  Cover.prototype.init = function () {
+  /**
+   * Init
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._init = function () {
     var options = this.options,
         $element = this.$element,
         $wrapper = this.$wrapper;
 
     // Use css 'background-size' if supported
-    if (options.css && ($('html').hasClass('bgsizecover') || (!window.Modernizr && $wrapper.css('background-size', 'cover') && $wrapper.css('background-size') === 'cover'))) {
+    if (options.css && this.cssSupport()) {
       $wrapper.css({
         'background-image':      'url(' + $element.attr('src') + ')',
         'background-position':   options.x + ' ' + options.y,
@@ -68,38 +106,18 @@
       return;
     }
 
-    // Init wrapper
-    if (options.attachment === 'scroll' && !$wrapper.is('body')) {
-      if (-1 === $.inArray($wrapper.css('position'), ['absolute', 'relative', 'fixed'])) {
-        $wrapper.css('position', 'relative');
-      }
-      $wrapper.css('overflow', 'hidden');
-    }
+    this._initWrapper();
+    this._initElement();
 
-    // Init element
-    $element.css({
-      'position':   'absolute',
-      'width':      'auto',
-      'min-width':  '0',
-      'max-width':  'none',
-      'height':     'auto',
-      'min-height': '0',
-      'max-height': 'none'
-    });
+    this._bind();
 
-    // Bindings
-    this.onResize = $.proxy(this.resize, this);
-    this.onRemove = $.proxy(this.destroy, this);
-    $window.on('resize', this.onResize);
-    $window.on('orientationchange', this.onResize);
-    $element.one('remove', this.onRemove);
 
     // Callback
     if (typeof this.options.onInit === 'function') {
       this.options.onInit.call($element);
     }
 
-    $element.trigger('initialized.cover');
+    $element.trigger('initialized.'+PLUGIN_NAME);
 
     if ($element.get(0).complete) {
       this.loaded();
@@ -108,13 +126,98 @@
     }
   };
 
-  Cover.prototype.destroy = function () {
+  /**
+   * Init wrapper
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._initWrapper = function() {
+    var options  = this.options,
+        $wrapper = this.$wrapper;
+
+    if (options.attachment === 'scroll' && !$wrapper.is('body')) {
+      if (-1 === $.inArray($wrapper.css('position'), ['absolute', 'relative', 'fixed'])) {
+        $wrapper.css('position', 'relative');
+      }
+      $wrapper.css('overflow', 'hidden');
+    }
+  };
+
+  /**
+   * Init element
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._initElement = function() {
+    this.$element.css({
+      'position':   'absolute',
+      'width':      'auto',
+      'min-width':  '0',
+      'max-width':  'none',
+      'height':     'auto',
+      'min-height': '0',
+      'max-height': 'none'
+    });
+  };
+
+  /**
+   * Bind
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._bind = function() {
+    this.onResize = $.proxy(this.resize, this);
+    this.onRemove = $.proxy(this.destroy, this);
+    $window.on('resize', this.onResize);
+    $window.on('orientationchange', this.onResize);
+    this.$element.one('remove', this.onRemove);
+  };
+
+  /**
+   * Unbind
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._unbind = function() {
     $window.off('resize', this.onResize);
     $window.off('orientationchange', this.onResize);
     this.$element.off('remove', this.onRemove);
-    this.$element.removeData('wxr.cover');
   };
 
+  /**
+   * CSS support
+   *
+   * @return {Boolean}
+   */
+  Cover.prototype.cssSupport = function() {
+    return (
+      $('html').hasClass('bgsizecover') ||
+      (
+        this.$wrapper.css('background-size', 'cover') &&
+        this.$wrapper.css('background-size') === 'cover'
+      )
+    );
+  };
+
+  /**
+   * Destroy
+   *
+   * @return {[type]}
+   */
+  Cover.prototype.destroy = function () {
+    this._unbind();
+    this.$element.removeData(NAMESPACE);
+  };
+
+  /**
+   * Loaded handler
+   *
+   * @return {void}
+   */
   Cover.prototype.loaded = function () {
     this.resize();
 
@@ -122,10 +225,16 @@
       this.options.onLoad.call(this.$element);
     }
 
-    this.$element.trigger('loaded.cover');
+    this.$element.trigger('loaded.'+PLUGIN_NAME);
   };
 
-  Cover.prototype.findWrapper = function () {
+  /**
+   * Find wrapper
+   *
+   * @access private
+   * @return {jQuery}
+   */
+  Cover.prototype._findWrapper = function () {
     var options  = this.options,
         $element = this.$element,
         $wrapper;
@@ -145,6 +254,11 @@
     return $wrapper;
   };
 
+  /**
+   * Get original width
+   *
+   * @return {Number}
+   */
   Cover.prototype.getOriginalWidth = function () {
     if (!this.width) {
       this.width = this.$element.attr('width') || this.$element.get(0).width || 1;
@@ -152,6 +266,11 @@
     return this.width;
   };
 
+  /**
+   * Get original height
+   *
+   * @return {Number}
+   */
   Cover.prototype.getOriginalHeight = function () {
     if (!this.height) {
       this.height = this.$element.attr('height') || this.$element.get(0).height || 1;
@@ -159,6 +278,11 @@
     return this.height;
   };
 
+  /**
+   * Get original ratio
+   *
+   * @return {Number}
+   */
   Cover.prototype.getOriginalRatio = function () {
     if (!this.ratio) {
       this.ratio = this.getOriginalWidth() / this.getOriginalHeight();
@@ -166,109 +290,153 @@
     return this.ratio;
   };
 
+  /**
+   * Get wrapper width
+   *
+   * @return {Number}
+   */
   Cover.prototype.getWrapperWidth = function () {
     var $wrapper = this.options.attachment === 'fixed' ? $window : this.$wrapper;
 
     return $wrapper.width();
   };
 
+  /**
+   * Get wrapper height
+   *
+   * @return {Number}
+   */
   Cover.prototype.getWrapperHeight = function () {
     var $wrapper = this.options.attachment === 'fixed' ? $window : this.$wrapper;
 
     return $wrapper.height();
   };
 
+  /**
+   * Get wrapper ratio
+   *
+   * @return {Number}
+   */
   Cover.prototype.getWrapperRatio = function () {
     return this.getWrapperWidth() / (this.getWrapperHeight() || 1);
   };
 
+  /**
+   * Resize
+   *
+   * @return {void}
+   */
   Cover.prototype.resize = function () {
     var options  = this.options,
         $element = this.$element;
 
     if (this.getWrapperRatio() < this.getOriginalRatio()) {
-
-      $element.css({
-        'width' : 'auto',
-        'height': '100%',
-        'top': 0
-      });
-
-      switch (options.x) {
-        case 'left':
-          $element.css({
-            left: 0,
-            right: 'none'
-          });
-          break;
-        case 'right':
-          $element.css({
-            left: 'none',
-            right: 0
-          });
-          break;
-        default:
-          $element.css({
-            left: -(($element.width() - this.getWrapperWidth()) / 2),
-            right: 'none'
-          });
-      }
-
+      this._resizeNarrower();
     } else {
-
-      $element.css({
-        'width' : '100%',
-        'height': 'auto',
-        'left': 0
-      });
-
-      switch (options.y) {
-        case 'top':
-          $element.css({
-            top: 0,
-            bottom: 'none'
-          });
-          break;
-        case 'bottom':
-          $element.css({
-            top: 'none',
-            bottom: 0
-          });
-          break;
-        default:
-          $element.css({
-            top: -(($element.height() - this.getWrapperHeight()) / 2),
-            bottom: 'none'
-          });
-      }
-
+      this._resizeWider();
     }
 
-    $element.trigger('resized.cover');
+    $element.trigger('resized.'+PLUGIN_NAME);
   };
 
+  /**
+   * Resize when narrower
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._resizeNarrower = function() {
+    var options  = this.options,
+        $element = this.$element;
 
-  // COVER PLUGIN DEFINITION
-  // =======================
+    $element.css({
+      'width' : 'auto',
+      'height': '100%',
+      'top': 0
+    });
 
-  var old = $.fn.cover;
+    switch (options.x) {
+      case 'left':
+        $element.css({
+          left: 0,
+          right: 'none'
+        });
+        break;
+      case 'right':
+        $element.css({
+          left: 'none',
+          right: 0
+        });
+        break;
+      default:
+        $element.css({
+          left: -(($element.width() - this.getWrapperWidth()) / 2),
+          right: 'none'
+        });
+    }
 
-  $.fn.cover = function (o) {
+  };
+
+  /**
+   * Resize when wider
+   *
+   * @access private
+   * @return {void}
+   */
+  Cover.prototype._resizeWider = function() {
+    var options  = this.options,
+        $element = this.$element;
+
+    $element.css({
+      'width' : '100%',
+      'height': 'auto',
+      'left': 0
+    });
+
+    switch (options.y) {
+      case 'top':
+        $element.css({
+          top: 0,
+          bottom: 'none'
+        });
+        break;
+      case 'bottom':
+        $element.css({
+          top: 'none',
+          bottom: 0
+        });
+        break;
+      default:
+        $element.css({
+          top: -(($element.height() - this.getWrapperHeight()) / 2),
+          bottom: 'none'
+        });
+    }
+
+  };
+
+  /**
+   * jQuery plugin
+   *
+   * @param  {Object} o
+   * @return {jQuery}
+   */
+  $.fn[PLUGIN_NAME] = function (o) {
     return this.each(function () {
-      var $this   = $(this),
-          data    = $this.data('wxr.cover'),
-          options = typeof o === 'object' ? o : {};
+      var $this    = $(this),
+          instance = $this.data(NAMESPACE),
+          options  = typeof o === 'object' ? o : {};
 
-      if (!data) {
-        $this.data('wxr.cover', data = new Cover(this, options));
+      if (!instance) {
+        instance = new Cover(this, options);
       }
 
       if (typeof o === 'string') {
 
         if (o === 'resize') {
-          data.resize();
+          instance.resize();
         } else if (o === 'destroy') {
-          data.destroy();
+          instance.destroy();
         }
 
       }
@@ -277,24 +445,16 @@
 
   $.fn.cover.Constructor = Cover;
 
-
-  // COVER NO CONFLICT
-  // =================
-
+  /**
+   * No conflict
+   *
+   * @return Plugin
+   */
   $.fn.cover.noConflict = function () {
     $.fn.cover = old;
     return this;
   };
 
+  return Cover;
 
-  // COVER DATA-API
-  // ==============
-
-  $(function () {
-    $('[data-size="cover"]').each(function () {
-      var $this = $(this);
-      $this.cover($this.data());
-    });
-  });
-
-})(window.jQuery, window);
+}));

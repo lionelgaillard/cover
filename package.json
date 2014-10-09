@@ -1,8 +1,8 @@
 {
   "name": "cover",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Use element as a `background-size: cover;`",
-  "main": "src/cover.js",
+  "main": "dist/cover.min.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/Ascarius/cover.git"
