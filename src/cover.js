@@ -1,4 +1,4 @@
-;(function ($, window, undefined) {
+;(function ($, window) {
 
   "use strict";
 
@@ -291,7 +291,7 @@
   // ==============
 
   $(function () {
-    $('img[data-size="cover"]').each(function () {
+    $('[data-size="cover"]').each(function () {
       var $this = $(this);
       $this.cover($this.data());
     });
