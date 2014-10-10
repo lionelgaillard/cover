@@ -1,30 +1,25 @@
 Cover
 =====
 
-Use `img` as a background image.
+Use `img` or `video` as a `background-size: cover;`.
 
 
 Quick start
 -----------
 
-Cover's wrapper can be `body` or any other element with `block` or `inline-block` `display`.
-If direct parent is an inline element (like a `a`), it will be ignored trough the closest valid ancestor.
+Wrapper can be `body` or any other element with `relative` or `absolute` `position`.
+
+It will be automatically detected if not given.
+
+If direct parent is an inline element (like an `a`), it will be ignored trough the closest valid ancestor.
 
 
 ### Javascript
 
 ```javascript
 $(function ($) {
-    $('.background-image').cover();
+  $('.background-image').cover();
 });
-```
-
-### Data API
-
-```html
-<body>
-  <img src="img/background.jpg" data-size="cover" alt="My background image" />
-</body>
 ```
 
 Default options
@@ -46,16 +41,13 @@ Default options
     // Wrapper selector used with 'closest'
     wrapper: undefined,
 
-    // Use CSS if browser is compatible
-    css: true,
-
     // onInit
-    init: function () {
+    onInit: function () {
       $(this).fadeTo(0, 0);
     },
 
     // onLoad
-    load: function () {
+    onLoad: function () {
       $(this).fadeTo(400, 1);
     }
 

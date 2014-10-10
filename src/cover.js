@@ -35,11 +35,7 @@
     this.$element.data(PLUGIN_NAME, this);
 
     this.options  = $.extend({}, this.DEFAULTS, options || {}, this.$element.data());
-    this.$wrapper = this._findWrapper();
-
-    this.width    = null;
-    this.height   = null;
-    this.ratio    = null;
+    this.$wrapper = this.getWrapper();
 
     this.onResize = null;
     this.onRemove = null;
@@ -65,9 +61,6 @@
 
     // Wrapper selector used with 'closest'
     wrapper: null,
-
-    // Use CSS if browser is compatible
-    css: true,
 
     // onInit
     onInit: undefined,
@@ -95,21 +88,24 @@
     this.onRemove = $.proxy(this.destroy, this);
     $window.on('resize', this.onResize);
     $window.on('orientationchange', this.onResize);
-    this.$element.one('remove', this.onRemove);
+    $element.one('remove', this.onRemove);
+
+    if (typeof this.options.onInit === 'function') {
+      $element.one('initialized.'+PLUGIN_NAME, this.options.onInit);
+    }
+
+    if (typeof this.options.onLoad === 'function') {
+      $element.one('loaded.'+PLUGIN_NAME, this.options.onLoad);
+    }
 
     this.resize();
-
-    // Callback
-    if (typeof this.options.onInit === 'function') {
-      this.options.onInit.call($element);
-    }
 
     $element.trigger('initialized.'+PLUGIN_NAME);
 
     if ($element.get(0).complete) {
-      this.loaded();
+      this.onLoad();
     } else {
-      $element.one('load loadeddata', $.proxy(this.loaded, this));
+      $element.one('load loadeddata', $.proxy(this.onLoad, this));
     }
   };
 
@@ -167,19 +163,19 @@
    *
    * @return {void}
    */
-  Cover.prototype.loaded = function () {
-    // Reset
-    this.width  = null;
-    this.height = null;
-    this.ratio  = null;
-
+  Cover.prototype.onLoad = function () {
     this.resize();
+    this.$element.trigger('loaded.'+PLUGIN_NAME);
+  };
 
-    if (typeof this.options.onLoad === 'function') {
-      this.options.onLoad.call(this.$element);
+  Cover.prototype.getWrapper = function() {
+    if (this.$wrapper) {
+      return this.$wrapper;
     }
 
-    this.$element.trigger('loaded.'+PLUGIN_NAME);
+    this.$wrapper = this.options.attachment === 'fixed' ? $window : this._findWrapper();
+
+    return this.$wrapper;
   };
 
   /**
@@ -209,39 +205,36 @@
   };
 
   /**
-   * Get original width
+   * Get natural width
    *
    * @return {Number}
    */
-  Cover.prototype.getOriginalWidth = function () {
-    if (!this.width) {
-      this.width = this.$element.attr('width') || this.$element.get(0).width || this.$element.width() || 1;
-    }
-    return this.width;
+  Cover.prototype.getNaturalWidth = function () {
+    var $element = this.$element,
+        element  = $element.get(0);
+
+    return element.naturalWidth || element.width || $element.attr('width') || $element.width() || 1;
   };
 
   /**
-   * Get original height
+   * Get natural height
    *
    * @return {Number}
    */
-  Cover.prototype.getOriginalHeight = function () {
-    if (!this.height) {
-      this.height = this.$element.attr('height') || this.$element.get(0).height || 1;
-    }
-    return this.height;
+  Cover.prototype.getNaturalHeight = function () {
+    var $element = this.$element,
+        element  = $element.get(0);
+
+    return element.naturalHeight || element.height || $element.attr('height') || $element.height() || 1;
   };
 
   /**
-   * Get original ratio
+   * Get natural ratio
    *
    * @return {Number}
    */
-  Cover.prototype.getOriginalRatio = function () {
-    if (!this.ratio) {
-      this.ratio = this.getOriginalWidth() / this.getOriginalHeight();
-    }
-    return this.ratio;
+  Cover.prototype.getNaturalRatio = function () {
+    return this.getNaturalWidth() / this.getNaturalHeight();
   };
 
   /**
@@ -250,9 +243,7 @@
    * @return {Number}
    */
   Cover.prototype.getWrapperWidth = function () {
-    var $wrapper = this.options.attachment === 'fixed' ? $window : this.$wrapper;
-
-    return $wrapper.width();
+    return this.getWrapper().width();
   };
 
   /**
@@ -261,9 +252,7 @@
    * @return {Number}
    */
   Cover.prototype.getWrapperHeight = function () {
-    var $wrapper = this.options.attachment === 'fixed' ? $window : this.$wrapper;
-
-    return $wrapper.height();
+    return this.getWrapper().height();
   };
 
   /**
@@ -284,7 +273,7 @@
     var options  = this.options,
         $element = this.$element;
 
-    if (this.getWrapperRatio() < this.getOriginalRatio()) {
+    if (this.getWrapperRatio() < this.getNaturalRatio()) {
       this._resizeNarrower();
     } else {
       this._resizeWider();
