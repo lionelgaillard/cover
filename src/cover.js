@@ -191,6 +191,8 @@
 
     if (typeof options.wrapper === 'string') {
       $wrapper = $element.closest(options.wrapper);
+    } else if (!$.contains(document, $element.get(0))) {
+      throw new Error('Element is not in DOM');
     } else {
       $wrapper = $element.parent();
       while (
