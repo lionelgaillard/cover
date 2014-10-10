@@ -1,7 +1,7 @@
 {
   "name": "cover",
-  "version": "1.2.1",
-  "description": "Use element as a `background-size: cover;`",
+  "version": "1.2.4",
+  "description": "Use `img` or `video` as a `background-size: cover;`",
   "main": "dist/cover.min.js",
   "repository": {
     "type": "git",
