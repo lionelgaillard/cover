@@ -14,7 +14,6 @@
   "use strict";
 
   var PLUGIN_NAME = 'cover';
-  var NAMESPACE   = 'wxr.cover';
 
   var $window     = $(window);
   var old         = $.fn[PLUGIN_NAME];
@@ -29,11 +28,11 @@
   function Cover (element, options) {
     this.$element = $(element);
 
-    if (this.$element.data(NAMESPACE)) {
-      return this.$element.data(NAMESPACE);
+    if (this.$element.data(PLUGIN_NAME)) {
+      return this.$element.data(PLUGIN_NAME);
     }
 
-    this.$element.data(NAMESPACE, this);
+    this.$element.data(PLUGIN_NAME, this);
 
     this.options  = $.extend({}, this.DEFAULTS, options || {}, this.$element.data());
     this.$wrapper = this._findWrapper();
@@ -89,22 +88,16 @@
         $element = this.$element,
         $wrapper = this.$wrapper;
 
-    // Use css 'background-size' if supported
-    if (options.css && this.cssSupport()) {
-      $wrapper.css({
-        'background-image':      'url(' + $element.attr('src') + ')',
-        'background-position':   options.x + ' ' + options.y,
-        'background-attachment': options.attachment
-      });
-      $element.hide();
-      return;
-    }
-
     this._initWrapper();
     this._initElement();
 
-    this._bind();
+    this.onResize = $.proxy(this.resize, this);
+    this.onRemove = $.proxy(this.destroy, this);
+    $window.on('resize', this.onResize);
+    $window.on('orientationchange', this.onResize);
+    this.$element.one('remove', this.onRemove);
 
+    this.resize();
 
     // Callback
     if (typeof this.options.onInit === 'function') {
@@ -116,7 +109,7 @@
     if ($element.get(0).complete) {
       this.loaded();
     } else {
-      $element.one('load', $.proxy(this.loaded, this));
+      $element.one('load loadeddata', $.proxy(this.loaded, this));
     }
   };
 
@@ -157,54 +150,16 @@
   };
 
   /**
-   * Bind
-   *
-   * @access private
-   * @return {void}
-   */
-  Cover.prototype._bind = function() {
-    this.onResize = $.proxy(this.resize, this);
-    this.onRemove = $.proxy(this.destroy, this);
-    $window.on('resize', this.onResize);
-    $window.on('orientationchange', this.onResize);
-    this.$element.one('remove', this.onRemove);
-  };
-
-  /**
-   * Unbind
-   *
-   * @access private
-   * @return {void}
-   */
-  Cover.prototype._unbind = function() {
-    $window.off('resize', this.onResize);
-    $window.off('orientationchange', this.onResize);
-    this.$element.off('remove', this.onRemove);
-  };
-
-  /**
-   * CSS support
-   *
-   * @return {Boolean}
-   */
-  Cover.prototype.cssSupport = function() {
-    return (
-      $('html').hasClass('bgsizecover') ||
-      (
-        this.$wrapper.css('background-size', 'cover') &&
-        this.$wrapper.css('background-size') === 'cover'
-      )
-    );
-  };
-
-  /**
    * Destroy
    *
    * @return {[type]}
    */
   Cover.prototype.destroy = function () {
-    this._unbind();
-    this.$element.removeData(NAMESPACE);
+    $window.off('resize', this.onResize);
+    $window.off('orientationchange', this.onResize);
+    this.$element.off('remove', this.onRemove);
+
+    this.$element.removeData(PLUGIN_NAME);
   };
 
   /**
@@ -213,6 +168,11 @@
    * @return {void}
    */
   Cover.prototype.loaded = function () {
+    // Reset
+    this.width  = null;
+    this.height = null;
+    this.ratio  = null;
+
     this.resize();
 
     if (typeof this.options.onLoad === 'function') {
@@ -255,7 +215,7 @@
    */
   Cover.prototype.getOriginalWidth = function () {
     if (!this.width) {
-      this.width = this.$element.attr('width') || this.$element.get(0).width || 1;
+      this.width = this.$element.attr('width') || this.$element.get(0).width || this.$element.width() || 1;
     }
     return this.width;
   };
@@ -418,7 +378,7 @@
   $.fn[PLUGIN_NAME] = function (o) {
     return this.each(function () {
       var $this    = $(this),
-          instance = $this.data(NAMESPACE),
+          instance = $this.data(PLUGIN_NAME),
           options  = typeof o === 'object' ? o : {};
 
       if (!instance) {
